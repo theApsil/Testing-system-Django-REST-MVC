@@ -18,7 +18,7 @@
 
 ---
 ## Инструкция по запуску
-1. Клонировать репозиторий: https://github.com/theApsil/Testting-REST-MVC.git
+1. Клонировать репозиторий: [https://github.com/theApsil/Testing-system-Django-REST-MVC.git](https://github.com/theApsil/Testing-system-Django-REST-MVC.git)
 2. Создайте собственный .venv
 3. Настройте интерпретатор
 4. `pip install -r requirements.txt`
