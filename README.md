@@ -69,3 +69,24 @@
 
 2.11 Результат запроса `POST /tests/{id}/start`
 ![image](images/13.png)
+
+---
+## SAST testing
+
+---
+### Flake8
+До: 
+![image](images/15.png)
+
+После: 
+![image](images/16.png)
+
+---
+### PyLint
+До: 
+![image](images/17.png)
+
+После: 
+![image](images/14.png)
+
+---

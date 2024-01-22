@@ -1,19 +1,29 @@
+"""
+Custom JWT Authentication Module for Django Rest Framework
+with Keycloak Integration.
+This module enables seamless integration between Django Rest Framework (DRF)
+andKeycloak for JSON Web Token (JWT) based user authentication.
+Users are authenticated using JWT tokens issued by Keycloak,
+and the module provides flexibility in
+configuration for easy adaptation to different Keycloak setups.
+"""
 import jwt
-from django.contrib.auth.backends import BaseBackend
 from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
-from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from drf_spectacular.plumbing import build_bearer_security_scheme_object
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import ValidationError
 from rest_framework import exceptions
 
 from users.models import User
 
-client_secret = "VU3CvpMhFVUq1gqkjEylFXR638zsIDU0"
+CLIENT_SECRET = "VU3CvpMhFVUq1gqkjEylFXR638zsIDU0"
 ALGORITHM = "RS256"
 
 
 class KeyCloakAuth(BaseAuthentication):
+    """
+       The class of authorization module that
+       inherits from the BaseAuthentication module
+    """
     keyword = 'Bearer'
 
     def authenticate(self, request, username=None, password=None):
@@ -32,15 +42,19 @@ class KeyCloakAuth(BaseAuthentication):
 
             return jwt.decode(
                 jwt=token,
-                key=client_secret,
+                key=CLIENT_SECRET,
                 algorithms=[ALGORITHM],
                 options={"verify_signature": False}
             )
-        except Exception as e:
+        except Exception:
             return None
 
 
 class KeycloakAuthenticationScheme(SimpleJWTScheme):
+    """
+        An authorization module class that creates
+        an authorization scheme for drf_spectacular
+    """
     target_class = KeyCloakAuth
     name = 'BearerToken'
     priority = -1
