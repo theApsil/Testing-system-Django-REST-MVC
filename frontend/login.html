@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация - Дальневосточный центр математики</title>
+    <!-- Подключение Bootstrap через CDN -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Подключение Font Awesome через CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header container-fluid">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="header-left d-flex justify-content-around w-100">
+                <div><i class="fas fa-map-marker-alt"></i> Владивосток, ул. Русская 46, 2 этаж.</div>
+                <div><i class="fas fa-envelope"></i> info@matdv.ru</div>
+                <div><i class="fas fa-phone-alt"></i> +7 423 248 07 07</div>
+                <a href="index.html">На главную</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Section -->
+    <div class="login-section d-flex align-items-center justify-content-center">
+        <div class="login-box">
+            <h2 class="text-center">Авторизация</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Имя пользователя</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Имя пользователя" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Пароль" required>
+                </div>
+                <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">Запомнить меня</label>
+                </div>
+                <button type="submit" class="btn btn-danger btn-block">Авторизоваться</button>
+            </form>
+            <div class="text-center mt-3">
+                <a href="teacher.html">Забыли пароль?</a>
+            </div>
+            <div id="error-message" class="alert alert-danger mt-3" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#loginForm').on('submit', function(event) {
+                event.preventDefault();
+                var formData = {
+                    username: $('#username').val(),
+                    password: $('#password').val(),
+                };
+                $.ajax({
+                    url: '/api/login/',
+                    type: 'POST',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        window.location.href = response.redirect;
+                    },
+                    error: function(response) {
+                        $('#error-message').text(response.responseJSON.detail).show();
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        $(document).ready(function() {
+            $('#loginForm').on('submit', function(event) {
+                event.preventDefault();
+                var formData = {
+                    username: $('#username').val(),
+                    password: $('#password').val(),
+                };
+                $.ajax({
+                    url: '/api/login/',
+                    type: 'POST',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        window.location.href = response.redirect;
+                    },
+                    error: function(response) {
+                        $('#error-message').text(response.responseJSON.detail).show();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

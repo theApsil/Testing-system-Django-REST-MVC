@@ -1,0 +1,122 @@
+body {
+    background: url('img/img_1.png') no-repeat center center fixed;
+    background-size: cover;
+    color: #ffffff;
+}
+
+.header, .footer {
+    background-color: #2d2d2d;
+    padding: 20px 0;
+}
+
+.header-left {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.header a {
+    color: #fff;
+    margin: 0 10px;
+}
+
+.hero-section {
+    background: url('img/img_1.png') no-repeat center center;
+    background-size: cover;
+    padding: 100px 0;
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 2.5rem;
+}
+
+.hero-section .btn {
+    margin-top: 20px;
+}
+
+.feature img {
+    display: block;
+    margin: 0 auto;
+}
+
+.programs, .mission, .contact-form {
+    padding: 50px 0;
+}
+
+.card {
+    background-color: #fff;
+    color: #000; /* Изменено на черный */
+    border: none;
+}
+
+
+.card-title {
+    color: #000000;
+}
+
+.card.bg-dark {
+    background-color: #2d2d2d !important;
+}
+
+.card.bg-dark .card-title {
+    color: #fff;
+}
+
+body {
+    background-color: #1c1c1c;
+    color: #fff;
+}
+
+.header, .footer {
+    background-color: #2d2d2d;
+    padding: 20px 0;
+}
+
+.header-left {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.header a {
+    color: #fff;
+    margin: 0 10px;
+}
+
+.login-section {
+    height: 100vh;
+    background: url('img/img_1.png') no-repeat center center;
+    background-size: cover;
+}
+
+.login-box {
+    background-color: #2d2d2d;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-box h2 {
+    margin-bottom: 30px;
+}
+
+.header-left div {
+    display: flex;
+    align-items: center;
+}
+
+.header-left div i {
+    margin-right: 8px;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #2d2d2d;
+    color: #ffffff;
+}
+
+.modal-title, .modal-body  {
+    color: #000000;
+}

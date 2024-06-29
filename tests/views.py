@@ -10,13 +10,11 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from solutions.models import TestSolution
 from solutions.serializers import TestSolutionSerializer
-from testing.middlewares import KeyCloakAuth
 from tests.models import Test
 from tests.serializers import TestSerializer, DetailedTestSerializer
 
 
 class TestViewSet(ReadOnlyModelViewSet):
-    authentication_classes = [KeyCloakAuth]
     permission_classes = [IsAuthenticated]
 
     serializer_classes = {

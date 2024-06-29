@@ -12,14 +12,12 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from solutions.filters import TestSolutionFilterSet
 from solutions.models import TestSolution, TaskSolution
 from solutions.serializers import TestSolutionSerializer
-from testing.middlewares import KeyCloakAuth
 from testing.subqueries import SubqueryCount
 from tests.models import Task, AnswerVariant
 
 
 class StudentSolutionViewSet(ReadOnlyModelViewSet):
     serializer_class = TestSolutionSerializer
-    authentication_classes = [KeyCloakAuth]
     permission_classes = [IsAuthenticated]
     filterset_class = TestSolutionFilterSet
 
@@ -36,7 +34,6 @@ class StudentSolutionViewSet(ReadOnlyModelViewSet):
 
 class StudentSolveTaskView(GenericAPIView):
     serializer_class = TestSolutionSerializer
-    authentication_classes = [KeyCloakAuth]
     permission_classes = [IsAuthenticated]
 
     @property
