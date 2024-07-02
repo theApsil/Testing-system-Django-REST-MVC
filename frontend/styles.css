@@ -120,3 +120,35 @@ body {
 .modal-title, .modal-body  {
     color: #000000;
 }
+
+.result-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #fff;
+}
+.result-card .card-body {
+    flex: 1;
+}
+.result-card .card-body h5 {
+    margin-bottom: 10px;
+}
+.result-card .card-body p {
+    margin: 0;
+}
+.result-card .result-details {
+    text-align: center;
+}
+.result-card .result-details div {
+    margin-bottom: 10px;
+}
+.correct-answer {
+    background-color: #d4edda;
+}
+.wrong-answer {
+    background-color: #f8d7da;
+}

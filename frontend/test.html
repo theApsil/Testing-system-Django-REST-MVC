@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест - Ученик</title>
+    <!-- Подключение Bootstrap -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Подключение Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 id="test-title">Название теста</h3>
+            <div id="question-number">1/10 вопросов</div>
+        </div>
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title" id="question-text">Вопрос</h5>
+                <img id="question-image" src="" alt="" class="img-fluid mb-3" style="display: none;">
+                <div id="answers">
+                    <!-- Варианты ответов будут сгенерированы здесь -->
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 d-flex justify-content-between">
+            <button class="btn btn-secondary" id="prev-question"><i class="fas fa-chevron-left"></i> Предыдущий вопрос</button>
+            <button class="btn btn-primary" id="next-question">Следующий вопрос <i class="fas fa-chevron-right"></i></button>
+            <button class="btn btn-danger" id="complete-test">Завершить</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+    $(document).ready(function() {
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        function csrfSafeMethod(method) {
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        let testId = new URLSearchParams(window.location.search).get('test_id');
+        let questions = [];
+        let currentQuestionIndex = 0;
+
+        function updateNavigationButtons() {
+            if (currentQuestionIndex === 0) {
+                $('#prev-question').attr('disabled', true);
+            } else {
+                $('#prev-question').attr('disabled', false);
+            }
+            if (currentQuestionIndex === questions.length - 1) {
+                $('#next-question').attr('disabled', true);
+            } else {
+                $('#next-question').attr('disabled', false);
+            }
+        }
+
+        function loadQuestion(index) {
+            if (index < questions.length && index >= 0) {
+                let question = questions[index];
+                $('#question-text').text(question.text);
+                $('#question-number').text((index + 1) + '/' + questions.length + ' вопросов');
+                if (question.image) {
+                    $('#question-image').attr('src', question.image).show();
+                } else {
+                    $('#question-image').hide();
+                }
+                let answersHtml = '';
+                question.answers.forEach(answer => {
+                    answersHtml += `
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="answer" id="answer${answer.id}" value="${answer.id}">
+                            <label class="form-check-label" for="answer${answer.id}">
+                                ${answer.text}
+                            </label>
+                        </div>
+                    `;
+                });
+                $('#answers').html(answersHtml);
+                updateNavigationButtons();
+            }
+        }
+
+        function saveAnswer() {
+            let selectedAnswer = $('input[name="answer"]:checked').val();
+            if (selectedAnswer) {
+                $.ajax({
+                    url: '/api/submit-answer/',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        question_id: questions[currentQuestionIndex].id,
+                        answer_id: selectedAnswer
+                    }),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        console.log('Answer saved');
+                    },
+                    error: function(response) {
+                        console.error('Error saving answer:', response);
+                    }
+                });
+            }
+        }
+
+        $('#next-question').on('click', function() {
+            saveAnswer();
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion(currentQuestionIndex);
+            } else {
+                currentQuestionIndex = questions.length - 1;
+            }
+        });
+
+        $('#prev-question').on('click', function() {
+            saveAnswer();
+            currentQuestionIndex--;
+            if (currentQuestionIndex >= 0) {
+                loadQuestion(currentQuestionIndex);
+            } else {
+                currentQuestionIndex = 0;
+            }
+        });
+
+        $('#complete-test').on('click', function() {
+            saveAnswer();
+            $.ajax({
+                url: `/api/complete-test/${testId}/`,
+                type: 'POST',
+                success: function(response) {
+                    alert(`Тест завершен.`);
+                    window.location.href = '/static/student.html';
+                },
+                error: function(response) {
+                    console.error('Error completing test:', response);
+                }
+            });
+        });
+
+        $.ajax({
+            url: `/api/test/${testId}/`,
+            type: 'GET',
+            success: function(response) {
+                $('#test-title').text(response.title);
+                questions = response.questions;
+                loadQuestion(currentQuestionIndex);
+            },
+            error: function(response) {
+                console.error('Error loading test:', response);
+            }
+        });
+    });
+    </script>
+
+</body>
+</html>
