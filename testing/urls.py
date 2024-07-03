@@ -24,6 +24,7 @@ from .views import test_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('study_groups.urls')),
+    path('', include('study_groups.urls')),
     path('api/', include('users.urls')),
     path('test.html', test_view, name='test'),
     path('student.html', test_view, name='test'),

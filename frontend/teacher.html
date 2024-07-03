@@ -9,6 +9,41 @@
     <!-- Подключение Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
+    <style>
+        .result-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #fff;
+        }
+        .result-card .card-body {
+            flex: 1;
+        }
+        .result-card .card-body h5 {
+            margin-bottom: 10px;
+        }
+        .result-card .card-body p {
+            margin: 0;
+        }
+        .result-card .result-details {
+            text-align: center;
+        }
+        .result-card .result-details div {
+            margin-bottom: 10px;
+        }
+        .correct-answer {
+            background-color: #d4edda;
+        }
+        .wrong-answer {
+            background-color: #f8d7da;
+        }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -24,7 +59,7 @@
     </div>
 
     <!-- Navbar -->
-        <div class="container mt-4">
+    <div class="container mt-4">
         <ul class="nav nav-tabs" id="teacherTab" role="tablist">
             <li class="nav-item">
                 <a class="nav-link active" id="groups-tab" data-toggle="tab" href="#groups" role="tab" aria-controls="groups" aria-selected="true">Мои группы</a>
@@ -35,38 +70,14 @@
             <li class="nav-item">
                 <a class="nav-link" id="create-test-tab" data-toggle="tab" href="#create-test" role="tab" aria-controls="create-test" aria-selected="false">Составить тест</a>
             </li>
+            <li class="nav-item ml-auto">
+                <a class="nav-item"><i class="fas fa-user"></i> <span id="teacher-name"></span></a>
+            </li>
         </ul>
         <div class="tab-content" id="teacherTabContent">
             <div class="tab-pane fade show active" id="groups" role="tabpanel" aria-labelledby="groups-tab">
-                <div class="row mt-4">
-                    <!-- Карточки групп -->
-                    <div class="col-md-3">
-                        <div class="card">
-                            <img src="img/img_3.png" class="card-img-top" alt="Группа A">
-                            <div class="card-body">
-                                <h5 class="card-title">Группа A</h5>
-                                <p class="card-text">Описание группы A.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <img src="img/img_2.png" class="card-img-top" alt="Группа B">
-                            <div class="card-body">
-                                <h5 class="card-title">Группа B</h5>
-                                <p class="card-text">Описание группы B.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <img src="img/img_3.png" class="card-img-top" alt="Группа C">
-                            <div class="card-body">
-                                <h5 class="card-title">Группа C</h5>
-                                <p class="card-text">Описание группы C.</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="row mt-4" id="group-cards">
+                    <!-- Карточки групп будут сгенерированы здесь -->
                 </div>
             </div>
             <div class="tab-pane fade" id="results" role="tabpanel" aria-labelledby="results-tab">
@@ -77,25 +88,19 @@
                         <div class="form-group">
                             <label for="selectTest">Выбор теста</label>
                             <select class="form-control" id="selectTest">
-                                <option>Тест 1</option>
-                                <option>Тест 2</option>
-                                <option>Тест 3</option>
+                                <!-- Тесты будут сгенерированы здесь -->
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="selectGroup">Выбор группы</label>
                             <select class="form-control" id="selectGroup">
-                                <option>Группа А</option>
-                                <option>Группа Б</option>
-                                <option>Группа В</option>
+                                <!-- Группы будут сгенерированы здесь -->
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="selectStudent">Выбор обучающегося</label>
                             <select class="form-control" id="selectStudent">
-                                <option>Ученик 1</option>
-                                <option>Ученик 2</option>
-                                <option>Ученик 3</option>
+                                <!-- Ученики будут сгенерированы здесь -->
                             </select>
                         </div>
                         <button type="button" class="btn btn-primary" onclick="getReport()">Получить аналитическую справку</button>
@@ -109,7 +114,7 @@
                     <h2>Составить тест</h2>
                     <form>
                         <div class="form-group">
-                            <label for="testName" >Название теста</label>
+                            <label for="testName">Название теста</label>
                             <input type="text" class="form-control" id="testName" placeholder="Введите название теста">
                         </div>
                         <div class="form-group form-check">
@@ -136,31 +141,150 @@
         </div>
     </div>
 
-    <div class="modal fade" id="addQuestionModal" tabindex="-1" role="dialog" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+    <div class="modal fade" id="groupModal" tabindex="-1" role="dialog" aria-labelledby="groupModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addQuestionModalLabel">Добавить задание</h5>
+                    <h5 class="modal-title" id="groupModalLabel">Информация о группе</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="questionText">Текст или id задания</label>
-                        <input type="text" class="form-control" id="questionText">
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="addQuestion()">Добавить</button>
+                    <p><strong>Преподаватель:</strong> <span id="teacher-name-modal"></span></p>
+                    <p><strong>Список учеников:</strong></p>
+                    <ul id="students-list"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
                 </div>
             </div>
         </div>
     </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
     <script>
         $(document).ready(function() {
+            // Load teacher profile
+            $.ajax({
+                url: '/api/profile/',
+                type: 'GET',
+                success: function(response) {
+                    console.log('User profile:', response); // Debug line
+                    $('#teacher-name').text(`${response.first_name} ${response.last_name}`);
+                },
+                error: function(response) {
+                    console.error('Error loading user profile:', response);
+                    alert('Error loading user profile');
+                }
+            });
+
+            // Load teacher groups
+            $.ajax({
+                url: '/api/teacher-groups/',
+                type: 'GET',
+                success: function(response) {
+                    console.log('Groups:', response); // Debug line
+                    let groups = response;
+                    let groupCards = '';
+                    groups.forEach(group => {
+                        groupCards += `
+                            <div class="col-md-3">
+                                <div class="card group-card" data-group='${JSON.stringify(group)}'>
+                                    <img src="${group.study_group_img_link}" class="card-img-top" alt="${group.study_group_name}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${group.study_group_name}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $('#group-cards').html(groupCards);
+
+                    // Add click event to each card
+                    $('.group-card').on('click', function() {
+                        let group = $(this).data('group');
+                        $('#groupModalLabel').text(group.study_group_name);
+                        $('#teacher-name-modal').text(`${group.teacher.first_name} ${group.teacher.last_name}`);
+                        let studentsList = '';
+                        group.members.forEach(member => {
+                            if (!member.is_staff) {
+                                studentsList += `<li>${member.first_name} ${member.last_name}</li>`;
+                            }
+                        });
+                        $('#students-list').html(studentsList);
+                        $('#groupModal').modal('show');
+                    });
+                },
+                error: function(response) {
+                    console.error('Error loading groups:', response);
+                    alert('Error loading groups');
+                }
+            });
+
+            // Load tests for results tab
+            $.ajax({
+                url: '/api/tests/',
+                type: 'GET',
+                success: function(response) {
+                    console.log('Tests:', response); // Debug line
+                    let tests = response;
+                    let testOptions = '';
+                    tests.forEach(test => {
+                        testOptions += `<option value="${test.id}">${test.title}</option>`;
+                    });
+                    $('#selectTest').html(testOptions);
+                },
+                error: function(response) {
+                    console.error('Error loading tests:', response);
+                    alert('Error loading tests');
+                }
+            });
+
+            // Load groups for results tab
+            $.ajax({
+                url: '/api/teacher-groups/',
+                type: 'GET',
+                success: function(response) {
+                    console.log('Groups:', response); // Debug line
+                    let groups = response;
+                    let groupOptions = '';
+                    groups.forEach(group => {
+                        groupOptions += `<option value="${group.id}">${group.study_group_name}</option>`;
+                    });
+                    $('#selectGroup').html(groupOptions);
+
+                    // Load students when a group is selected
+                    $('#selectGroup').on('change', function() {
+                        let groupId = $(this).val();
+                        $.ajax({
+                            url: `/api/group-students/${groupId}/`,
+                            type: 'GET',
+                            success: function(response) {
+                                console.log('Students:', response); // Debug line
+                                let students = response;
+                                let studentOptions = '';
+                                students.forEach(student => {
+                                    studentOptions += `<option value="${student.id}">${student.first_name} ${student.last_name}</option>`;
+                                });
+                                $('#selectStudent').html(studentOptions);
+                            },
+                            error: function(response) {
+                                console.error('Error loading students:', response);
+                                alert('Error loading students');
+                            }
+                        });
+                    });
+                },
+                error: function(response) {
+                    console.error('Error loading groups:', response);
+                    alert('Error loading groups');
+                }
+            });
+
             $('#teacherTab a').on('click', function (e) {
                 e.preventDefault();
                 $(this).tab('show');

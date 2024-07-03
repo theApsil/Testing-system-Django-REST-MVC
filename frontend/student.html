@@ -9,6 +9,8 @@
     <!-- Подключение Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="/static/styles.css" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <style>
         .result-card {
@@ -294,8 +296,8 @@
                                     <p class="card-text">${result.test.description}</p>
                                 </div>
                                 <div class="result-details">
-                                    <div>Баллы / ${result.test.questions.length},00<br>${result.score}</div>
-                                    <div>Оценка / 5,00<br>${result.grade}</div>
+                                    <div>Баллы<br><b>${result.score},00</b> / ${result.test.questions.length},00</div>
+                                    <div>Оценка<br> <b> ${result.grade}</b> / 5</div>
                                     <button class="btn btn-primary view-results" data-results='${JSON.stringify(result)}'>Просмотреть</button>
                                 </div>
                             </div>
@@ -308,7 +310,7 @@
                         let result = $(this).data('results');
                         let questionsHtml = '';
                         result.test.questions.forEach(question => {
-                            questionsHtml += `<h5>${question.text}</h5>`;
+                            questionsHtml += `<h5 class="mathjax">${question.text}</h5>`;
                             if (question.image) {
                                 questionsHtml += `<img src="${question.image}" class="img-fluid mb-3">`;
                             }

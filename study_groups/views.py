@@ -3,8 +3,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Test, Question, Answer, UserAnswer, UserTestStatus
-from .serializers import TestSerializer, UserTestStatusSerializer
+from .models import Test, Question, Answer, UserAnswer, UserTestStatus, StudyGroup
+from .serializers import TestSerializer, UserTestStatusSerializer, UserSerializer
 from rest_framework import generics
 from .serializers import StudyGroupSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -102,3 +102,46 @@ class CompleteTestView(APIView):
         UserTestStatus.objects.update_or_create(user=user, test=test,
                                                 defaults={'is_completed': True, 'score': score, 'grade': grade})
         return Response({"message": "Test completed", "score": score, "grade": grade}, status=status.HTTP_200_OK)
+
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+
+class TeacherGroupsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if not user.is_staff:
+            return Response({"error": "User is not a teacher"}, status=403)
+        groups = StudyGroup.objects.filter(teacher_id=user.id)
+        serializer = StudyGroupSerializer(groups, many=True)
+        return Response(serializer.data)
+
+
+class TestsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tests = Test.objects.all()
+        serializer = TestSerializer(tests, many=True)
+        return Response(serializer.data)
+
+
+class GroupStudentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, group_id):
+        try:
+            group = StudyGroup.objects.get(id=group_id)
+        except StudyGroup.DoesNotExist:
+            return Response({"error": "Group not found"}, status=404)
+        students = group.members.filter(is_staff=False)
+        serializer = UserSerializer(students, many=True)
+        return Response(serializer.data)
