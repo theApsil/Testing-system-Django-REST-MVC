@@ -8,6 +8,10 @@ from .serializers import TestSerializer, UserTestStatusSerializer, UserSerialize
 from rest_framework import generics
 from .serializers import StudyGroupSerializer
 from rest_framework.permissions import IsAuthenticated
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserStudyGroupsView(generics.ListAPIView):
@@ -113,6 +117,15 @@ class ProfileView(APIView):
         return Response(serializer.data)
 
 
+class TestsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tests = Test.objects.all()
+        serializer = TestSerializer(tests, many=True)
+        return Response(serializer.data)
+
+
 class TeacherGroupsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -125,23 +138,70 @@ class TeacherGroupsView(APIView):
         return Response(serializer.data)
 
 
-class TestsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        tests = Test.objects.all()
-        serializer = TestSerializer(tests, many=True)
-        return Response(serializer.data)
-
-
 class GroupStudentsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, group_id):
         try:
-            group = StudyGroup.objects.get(id=group_id)
+            group = StudyGroup.objects.get(study_group_id=group_id)
+            students = group.members.filter(is_staff=False)
+            serializer = UserSerializer(students, many=True)
+            group_data = {
+                "study_group_name": group.study_group_name,
+                "teacher": {
+                    "first_name": group.teacher.first_name,
+                    "last_name": group.teacher.last_name
+                },
+                "members": serializer.data
+            }
+            return Response(group_data)
         except StudyGroup.DoesNotExist:
             return Response({"error": "Group not found"}, status=404)
-        students = group.members.filter(is_staff=False)
-        serializer = UserSerializer(students, many=True)
-        return Response(serializer.data)
+
+
+class GroupTestsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, group_id):
+        try:
+            group = StudyGroup.objects.get(study_group_id=group_id)
+            tests = group.tests.all()
+            serializer = TestSerializer(tests, many=True)
+            return Response(serializer.data)
+        except StudyGroup.DoesNotExist:
+            return Response({"error": "Group not found"}, status=404)
+
+
+class StudentTestResultView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, student_id, test_id):
+        try:
+            test_status = UserTestStatus.objects.get(user_id=student_id, test_id=test_id)
+            if not test_status.is_completed:
+                return Response({"completed": False})
+
+            user_answers = UserAnswer.objects.filter(user_id=student_id, question__test_id=test_id)
+            questions = []
+            for answer in user_answers:
+                question_data = {
+                    "text": answer.question.text,
+                    "answer": answer.selected_answer.text,
+                    "is_correct": answer.selected_answer.is_correct,
+                }
+                questions.append(question_data)
+
+            result_data = {
+                "completed": True,
+                "score": test_status.score,
+                "grade": test_status.grade,
+                "questions": questions
+            }
+            logger.info(f"Result data: {result_data}")  # Debugging line
+            return Response(result_data)
+        except UserTestStatus.DoesNotExist:
+            logger.error(f"Test status not found for user {student_id} and test {test_id}")
+            return Response({"error": "Test status not found"}, status=404)
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            return Response({"error": str(e)}, status=500)

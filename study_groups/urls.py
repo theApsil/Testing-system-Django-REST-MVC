@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (UserStudyGroupsView, UserResultsView, ActiveTestsView, TestDetailView, UserAnswerView,
-                    CompleteTestView, ProfileView, TeacherGroupsView, TestsView, GroupStudentsView)
+                    CompleteTestView, ProfileView, TeacherGroupsView, TestsView, GroupStudentsView, GroupTestsView,
+                    StudentTestResultView)
 
 urlpatterns = [
     path('user-groups/', UserStudyGroupsView.as_view(), name='user-groups'),
@@ -12,5 +13,8 @@ urlpatterns = [
     path('api/profile/', ProfileView.as_view(), name='profile'),
     path('api/teacher-groups/', TeacherGroupsView.as_view(), name='teacher-groups'),
     path('api/tests/', TestsView.as_view(), name='tests'),
+    path('api/teacher-groups/', TeacherGroupsView.as_view(), name='teacher-groups'),
     path('api/group-students/<int:group_id>/', GroupStudentsView.as_view(), name='group-students'),
+    path('api/group-tests/<int:group_id>/', GroupTestsView.as_view(), name='group-tests'),
+    path('api/student-test-result/<int:student_id>/<int:test_id>/', StudentTestResultView.as_view(), name='student-test-result'),
 ]
