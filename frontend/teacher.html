@@ -4,19 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мои группы - Преподаватель</title>
-    <!-- Подключение Bootstrap -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Подключение Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
     <style>
         .group-card {
             cursor: pointer;
         }
+        .correct-answer {
+            color: green;
+        }
+        .wrong-answer {
+            color: red;
+        }
+        .selected-question {
+            background-color: green;
+            color: white;
+        }
+        .question-btn {
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header container-fluid">
         <div class="container d-flex justify-content-between align-items-center">
             <div class="header-left d-flex justify-content-around w-100">
@@ -28,7 +38,6 @@
         </div>
     </div>
 
-    <!-- Navbar -->
     <div class="container mt-4">
         <ul class="nav nav-tabs" id="teacherTab" role="tablist">
             <li class="nav-item">
@@ -37,10 +46,17 @@
             <li class="nav-item">
                 <a class="nav-link" id="results-tab" data-toggle="tab" href="#results" role="tab" aria-controls="results" aria-selected="false">Результаты тестов</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="create-question-tab" data-toggle="tab" href="#create-question" role="tab" aria-controls="create-question" aria-selected="false">Создать задание</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="create-test-tab" data-toggle="tab" href="#create-test" role="tab" aria-controls="create-test" aria-selected="false">Создать тест</a>
+            </li>
             <li class="nav-item ml-auto">
                 <a class="nav-item"><i class="fas fa-user"></i> <span id="teacher-name"></span></a>
             </li>
         </ul>
+
         <div class="tab-content" id="teacherTabContent">
             <div class="tab-pane fade show active" id="groups" role="tabpanel" aria-labelledby="groups-tab">
                 <div class="row mt-4" id="group-cards">
@@ -48,7 +64,6 @@
                 </div>
             </div>
             <div class="tab-pane fade" id="results" role="tabpanel" aria-labelledby="results-tab">
-                <!-- Секция результатов тестов -->
                 <div class="container mt-4">
                     <h2>Результаты тестов</h2>
                     <form>
@@ -75,10 +90,83 @@
                     <p class="error-message" id="error-message" style="display:none;">Данный ученик ещё не прошёл этот тест</p>
                 </div>
             </div>
+
+            <div class="tab-pane fade" id="create-question" role="tabpanel" aria-labelledby="create-question-tab">
+                <div class="container mt-4">
+                    <h3>Создать задание</h3>
+                    <form id="create-question-form" enctype="multipart/form-data">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <div class="form-group">
+                            <label for="question-text">Текст задания</label>
+                            <textarea id="question-text" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="question-image">Изображение (опционально)</label>
+                            <input type="file" id="question-image" class="form-control-file">
+                        </div>
+                        <div class="form-group">
+                            <label>Варианты ответа</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="correct-answer" id="option1" value="0" required>
+                                <input type="text" id="answer1" class="form-control" required>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="correct-answer" id="option2" value="1" required>
+                                <input type="text" id="answer2" class="form-control" required>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="correct-answer" id="option3" value="2" required>
+                                <input type="text" id="answer3" class="form-control" required>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="correct-answer" id="option4" value="3" required>
+                                <input type="text" id="answer4" class="form-control" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Создать задание</button>
+                    </form>
+                    <button type="button" class="btn btn-secondary mt-3" data-toggle="modal" data-target="#viewAllQuestionsModal">Просмотреть все задания</button>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="create-test" role="tabpanel" aria-labelledby="create-test-tab">
+                <div class="container mt-4">
+                    <h3>Создать тест</h3>
+                    <form id="create-test-form">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <div class="form-group">
+                            <label for="test-title">Название теста</label>
+                            <input type="text" id="test-title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="test-description">Описание теста</label>
+                            <textarea id="test-description" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="selectGroup">Выбор группы</label>
+                            <select class="form-control" id="selectGroupForTest">
+                                <option value="">Выберите группу</option>
+                                <!-- Группы будут загружены сюда -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="question-count">Количество заданий</label>
+                            <input type="number" id="question-count" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Задания теста</label>
+                            <div id="questions-buttons" class="mb-3">
+                                <!-- Кнопки для выбора заданий будут сгенерированы здесь -->
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary" id="generate-questions-buttons">Сгенерировать кнопки заданий</button>
+                        <button type="submit" class="btn btn-primary">Создать тест</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Modal -->
     <div class="modal fade" id="groupModal" tabindex="-1" role="dialog" aria-labelledby="groupModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -100,7 +188,6 @@
         </div>
     </div>
 
-    <!-- Result Modal -->
     <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -123,168 +210,429 @@
         </div>
     </div>
 
+    <!-- Modal для отображения всех заданий -->
+    <div class="modal fade" id="viewAllQuestionsModal" tabindex="-1" role="dialog" aria-labelledby="viewAllQuestionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewAllQuestionsModalLabel">Все задания</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="all-questions-list"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal для добавления задания в тест -->
+    <div class="modal fade" id="addQuestionModal" tabindex="-1" role="dialog" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addQuestionModalLabel">Добавить задание</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="search-question">Поиск задания</label>
+                        <input type="text" id="search-question" class="form-control">
+                    </div>
+                    <div id="question-search-results"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary" onclick="addSelectedQuestions()">Добавить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    </script>
     <script>
         $(document).ready(function() {
-            // Load teacher profile
-            $.ajax({
-                url: '/api/profile/',
-                type: 'GET',
-                success: function(response) {
-                    $('#teacher-name').text(`${response.first_name} ${response.last_name}`);
-                },
-                error: function(response) {
-                    alert('Error loading user profile');
-                }
-            });
+    // Load teacher profile
+    $.ajax({
+        url: '/api/profile/',
+        type: 'GET',
+        success: function(response) {
+            $('#teacher-name').text(`${response.first_name} ${response.last_name}`);
+        },
+        error: function(response) {
+            alert('Error loading user profile');
+        }
+    });
 
-            // Load teacher groups
-            $.ajax({
-                url: '/api/teacher-groups/',
-                type: 'GET',
-                success: function(response) {
-                    let groups = response;
-                    let groupCards = '';
-                    let groupOptions = '<option value="">Выберите группу</option>';
-                    groups.forEach(group => {
-                        groupCards += `
-                            <div class="col-md-3">
-                                <div class="card group-card" data-group-id="${group.study_group_id}">
-                                    <img src="${group.study_group_img_link}" class="card-img-top" alt="${group.study_group_name}">
-                                    <div class="card-body">
-                                        <h5 class="card-title">${group.study_group_name}</h5>
-                                    </div>
-                                </div>
+    // Load teacher groups
+    $.ajax({
+        url: '/api/teacher-groups/',
+        type: 'GET',
+        success: function(response) {
+            let groups = response;
+            let groupCards = '';
+            let groupOptions = '<option value="">Выберите группу</option>';
+            groups.forEach(group => {
+                groupCards += `
+                    <div class="col-md-3">
+                        <div class="card group-card" data-group-id="${group.study_group_id}">
+                            <img src="${group.study_group_img_link}" class="card-img-top" alt="${group.study_group_name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${group.study_group_name}</h5>
                             </div>
-                        `;
-                        groupOptions += `<option value="${group.study_group_id}">${group.study_group_name}</option>`;
-                    });
-                    $('#group-cards').html(groupCards);
-                    $('#selectGroup').html(groupOptions);
-
-                    // Add click event to each card
-                    $('.group-card').on('click', function() {
-                        let groupId = $(this).data('group-id');
-                        console.log('Group ID:', groupId);  // Debug line
-                        $.ajax({
-                            url: `/api/group-students/${groupId}/`,
-                            type: 'GET',
-                            success: function(response) {
-                                console.log('Group Data:', response);  // Debug line
-                                let group = response;
-                                $('#groupModalLabel').text(group.study_group_name);
-                                $('#teacher-name-modal').text(`${group.teacher.first_name} ${group.teacher.last_name}`);
-                                let studentsList = '';
-                                group.members.forEach(member => {
-                                    if (!member.is_staff) {
-                                        studentsList += `<li>${member.first_name} ${member.last_name}</li>`;
-                                    }
-                                });
-                                $('#students-list').html(studentsList);
-                                $('#groupModal').modal('show');
-                            },
-                            error: function(response) {
-                                console.error('Error loading group students:', response);  // Debug line
-                                alert('Error loading group students');
-                            }
-                        });
-                    });
-                },
-                error: function(response) {
-                    alert('Error loading groups');
-                }
+                        </div>
+                    </div>
+                `;
+                groupOptions += `<option value="${group.study_group_id}">${group.study_group_name}</option>`;
             });
+            $('#group-cards').html(groupCards);
+            $('#selectGroup').html(groupOptions);
+            $('#selectGroupForTest').html(groupOptions);
 
-            // Load tests for the selected group
-            $('#selectGroup').on('change', function() {
-                let groupId = $(this).val();
-                if (groupId === "") {
-                    $('#selectTest').html('<option value="">Выберите тест</option>');
-                    $('#selectStudent').html('<option value="">Выберите ученика</option>');
-                    return;
-                }
-                $.ajax({
-                    url: `/api/group-tests/${groupId}/`,
-                    type: 'GET',
-                    success: function(response) {
-                        let tests = response;
-                        let testOptions = '<option value="">Выберите тест</option>';
-                        tests.forEach(test => {
-                            testOptions += `<option value="${test.id}">${test.title}</option>`;
-                        });
-                        $('#selectTest').html(testOptions);
-                    },
-                    error: function(response) {
-                        alert('Error loading tests');
-                    }
-                });
-
-                // Load students for the selected group
+            // Add click event to each card
+            $('.group-card').on('click', function() {
+                let groupId = $(this).data('group-id');
+                console.log('Group ID:', groupId);  // Debug line
                 $.ajax({
                     url: `/api/group-students/${groupId}/`,
                     type: 'GET',
                     success: function(response) {
-                        let students = response.members;
-                        let studentOptions = '<option value="">Выберите ученика</option>';
-                        students.forEach(student => {
-                            studentOptions += `<option value="${student.id}">${student.first_name} ${student.last_name}</option>`;
+                        console.log('Group Data:', response);  // Debug line
+                        let group = response;
+                        $('#groupModalLabel').text(group.study_group_name);
+                        $('#teacher-name-modal').text(`${group.teacher.first_name} ${group.teacher.last_name}`);
+                        let studentsList = '';
+                        group.members.forEach(member => {
+                            if (!member.is_staff) {
+                                studentsList += `<li>${member.first_name} ${member.last_name}</li>`;
+                            }
                         });
-                        $('#selectStudent').html(studentOptions);
+                        $('#students-list').html(studentsList);
+                        $('#groupModal').modal('show');
                     },
                     error: function(response) {
-                        alert('Error loading students');
+                        console.error('Error loading group students:', response);  // Debug line
+                        alert('Error loading group students');
                     }
                 });
             });
+        },
+        error: function(response) {
+            alert('Error loading groups');
+        }
+    });
+
+    // Load tests for the selected group
+    $('#selectGroup').on('change', function() {
+        let groupId = $(this).val();
+        if (groupId === "") {
+            $('#selectTest').html('<option value="">Выберите тест</option>');
+            $('#selectStudent').html('<option value="">Выберите ученика</option>');
+            return;
+        }
+        $.ajax({
+            url: `/api/group-tests/${groupId}/`,
+            type: 'GET',
+            success: function(response) {
+                let tests = response;
+                let testOptions = '<option value="">Выберите тест</option>';
+                tests.forEach(test => {
+                    testOptions += `<option value="${test.id}">${test.title}</option>`;
+                });
+                $('#selectTest').html(testOptions);
+            },
+            error: function(response) {
+                alert('Error loading tests');
+            }
         });
 
-        function getResults() {
-            let studentId = $('#selectStudent').val();
-            let testId = $('#selectTest').val();
-
-            if (studentId === "" || testId === "") {
-                alert("Пожалуйста, выберите группу, тест и ученика.");
-                return;
+        // Load students for the selected group
+        $.ajax({
+            url: `/api/group-students/${groupId}/`,
+            type: 'GET',
+            success: function(response) {
+                let students = response.members;
+                let studentOptions = '<option value="">Выберите ученика</option>';
+                students.forEach(student => {
+                    studentOptions += `<option value="${student.id}">${student.first_name} ${student.last_name}</option>`;
+                });
+                $('#selectStudent').html(studentOptions);
+            },
+            error: function(response) {
+                alert('Error loading students');
             }
+        });
+    });
 
-            $.ajax({
-                url: `/api/student-test-result/${studentId}/${testId}/`,
-                type: 'GET',
-                success: function(response) {
-                    console.log('Test Result:', response);  // Debug line
-                    if (response.completed) {
-                        $('#score').text(response.score);
-                        $('#grade').text(response.grade);
-                        let questionsList = '';
-                        response.questions.forEach(question => {
-                            questionsList += `
-                                <div>
-                                    <p>${question.text}</p>
-                                    <p class="${question.is_correct ? 'correct-answer' : 'wrong-answer'}">${question.answer}</p>
+    // Load all questions
+    $('#viewAllQuestionsModal').on('show.bs.modal', function () {
+        $.ajax({
+            url: '/api/all-questions/',
+            type: 'GET',
+            success: function(response) {
+                let questions = response;
+                let questionsList = '';
+                questions.forEach(question => {
+                    questionsList += `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">${question.text}</h5>
+                                ${question.image ? `<img src="${question.image}" class="img-fluid" alt="Question Image">` : ''}
+                                <p class="card-text"><strong>Варианты ответа:</strong></p>
+                                <ul class="list-group">
+                                    ${question.answers.map(answer => `<li class="list-group-item ${answer.is_correct ? 'correct-answer' : ''}">${answer.text}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#all-questions-list').html(questionsList);
+            },
+            error: function(response) {
+                alert('Error loading questions');
+            }
+        });
+    });
+
+    // Search and display questions in add question modal
+    $('#search-question').on('input', function() {
+        let searchText = $(this).val().toLowerCase();
+        $.ajax({
+            url: '/api/all-questions/',
+            type: 'GET',
+            success: function(response) {
+                let questions = response;
+                let questionsList = '';
+                questions.forEach(question => {
+                    if (question.text.toLowerCase().includes(searchText)) {
+                        questionsList += `
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">${question.text}</h5>
+                                    ${question.image ? `<img src="${question.image}" class="img-fluid" alt="Question Image">` : ''}
+                                    <p class="card-text"><strong>Варианты ответа:</strong></p>
+                                    <ul class="list-group">
+                                        ${question.answers.map(answer => `<li class="list-group-item ${answer.is_correct ? 'correct-answer' : ''}">${answer.text}</li>`).join('')}
+                                    </ul>
+                                    <button type="button" class="btn btn-primary btn-select-question" data-question-id="${question.id}">Выбрать</button>
                                 </div>
-                            `;
-                        });
-                        $('#questions-list').html(questionsList);
-                        $('#resultModal').modal('show');
-                    } else {
-                        $('#error-message').show();
+                            </div>
+                        `;
                     }
-                },
-                error: function(response) {
-                    alert('Error loading test result');
-                }
-            });
+                });
+                $('#question-search-results').html(questionsList);
+
+                // Add click event to select question buttons
+                $('.btn-select-question').on('click', function() {
+                    let questionId = $(this).data('question-id');
+                    selectQuestion(questionId);
+                });
+            },
+            error: function(response) {
+                alert('Error loading questions');
+            }
+        });
+    });
+
+    // Generate question buttons based on the number of questions specified
+    $('#generate-questions-buttons').on('click', function() {
+        let questionCount = parseInt($('#question-count').val());
+        let buttonsHtml = '';
+        for (let i = 0; i < questionCount; i++) {
+            buttonsHtml += `<button type="button" class="btn btn-secondary question-btn" data-question-index="${i}">Задание ${i + 1}</button>`;
+        }
+        $('#questions-buttons').html(buttonsHtml);
+
+        // Add click event to each question button
+        $('.question-btn').on('click', function() {
+            let questionIndex = $(this).data('question-index');
+            $('#addQuestionModal').data('question-index', questionIndex).modal('show');
+        });
+    });
+
+    // Select a question and assign it to the corresponding button
+    function selectQuestion(questionId) {
+        let questionIndex = $('#addQuestionModal').data('question-index');
+        $(`.question-btn[data-question-index="${questionIndex}"]`).addClass('selected-question').prop('disabled', true).data('question-id', questionId);
+        $('#addQuestionModal').modal('hide');
+    }
+
+    // Обработка создания теста
+    document.getElementById('create-test-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        let title = document.getElementById('test-title').value;
+        let description = document.getElementById('test-description').value;
+        let groupId = document.getElementById('selectGroupForTest').value;
+
+        if (!title || !description || !groupId) {
+            alert('Пожалуйста, заполните все обязательные поля.');
+            return;
         }
 
-        function generateReport() {
-            let studentId = $('#selectStudent').val();
-            let testId = $('#selectTest').val();
+        let questions = [];
+        $('.question-btn.selected-question').each(function () {
+            questions.push($(this).data('question-id'));
+        });
 
-            window.location.href = `/api/generate-report/${studentId}/${testId}/`;
+        const testData = {
+            title: title,
+            description: description,
+            study_group: groupId,
+            questions: questions
+        };
+
+        console.log('Sending test data:', testData); // Debugging line
+
+        fetch('/api/create-test/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(testData)
+        }).then(response => {
+            if (response.ok) {
+                alert('Тест успешно создан!');
+                document.getElementById('create-test-form').reset();
+                $('#questions-buttons').html('');
+            } else {
+                response.json().then(data => {
+                    console.log('Response error data:', data); // Debugging line
+                    alert('Ошибка при создании теста.');
+                });
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при создании теста.');
+        });
+    });
+});
+
+function getResults() {
+    let studentId = $('#selectStudent').val();
+    let testId = $('#selectTest').val();
+
+    if (studentId === "" || testId === "") {
+        alert("Пожалуйста, выберите группу, тест и ученика.");
+        return;
+    }
+
+    $.ajax({
+        url: `/api/student-test-result/${studentId}/${testId}/`,
+        type: 'GET',
+        success: function(response) {
+            console.log('Test Result:', response);  // Debug line
+            if (response.completed) {
+                $('#score').text(response.score);
+                $('#grade').text(response.grade);
+                let questionsList = '';
+                response.questions.forEach(question => {
+                    questionsList += `
+                        <div>
+                            <p>${question.text}</p>
+                            <p class="${question.is_correct ? 'correct-answer' : 'wrong-answer'}">${question.answer}</p>
+                        </div>
+                    `;
+                });
+                $('#questions-list').html(questionsList);
+                $('#resultModal').modal('show');
+            } else {
+                $('#error-message').show();
+            }
+        },
+        error: function(response) {
+            alert('Error loading test result');
         }
-    </script>
+    });
+}
+
+function generateReport() {
+    let studentId = $('#selectStudent').val();
+    let testId = $('#selectTest').val();
+
+    if (studentId === "" || testId === "") {
+        alert("Пожалуйста, выберите группу, тест и ученика.");
+        return;
+    }
+
+    window.location.href = `/api/generate-report/${studentId}/${testId}/`;
+}
+
+document.getElementById('create-question-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('text', document.getElementById('question-text').value);
+    const imageFile = document.getElementById('question-image').files[0];
+    if (imageFile) {
+        formData.append('image', imageFile);
+    }
+
+    const answers = [
+        {
+            text: document.getElementById('answer1').value,
+            is_correct: document.querySelector('input[name="correct-answer"]:checked').value === '0'
+        },
+        {
+            text: document.getElementById('answer2').value,
+            is_correct: document.querySelector('input[name="correct-answer"]:checked').value === '1'
+        },
+        {
+            text: document.getElementById('answer3').value,
+            is_correct: document.querySelector('input[name="correct-answer"]:checked').value === '2'
+        },
+        {
+            text: document.getElementById('answer4').value,
+            is_correct: document.querySelector('input[name="correct-answer"]:checked').value === '3'
+        }
+    ];
+    formData.append('answers', JSON.stringify(answers));
+
+    fetch('/api/create-question/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrftoken
+        }
+    }).then(response => {
+        if (response.ok) {
+            alert('Задание успешно создано!');
+            document.getElementById('create-question-form').reset();
+        } else {
+            alert('Ошибка при создании задания.');
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при создании задания.');
+    });
+});
+</script>
+
 </body>
 </html>

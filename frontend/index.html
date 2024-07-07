@@ -99,12 +99,12 @@
     <!-- Contact Form Section -->
     <div id="contact-form" class="contact-form container text-center">
         <h2>Записаться на пробное занятие</h2>
-        <form>
+        <form id="trial-lesson-form">
             <div class="form-group">
-                <input type="text" class="form-control" placeholder="Ваше имя">
+                <input type="text" id="name" class="form-control" placeholder="Ваше имя">
             </div>
             <div class="form-group">
-                <input type="text" class="form-control" placeholder="+7 (999) 999-99-99">
+                <input type="text" id="phone" class="form-control" placeholder="+7 (999) 999-99-99">
             </div>
             <button type="submit" class="btn btn-outline-light"><br><b>ПОЛУЧИТЬ ПРОБНОЕ ЗАНЯТИЕ</b> <br><br></button>
         </form>
@@ -127,6 +127,30 @@
                     behavior: 'smooth'
                 });
             });
+        });
+
+        // Обработка формы
+        document.getElementById('trial-lesson-form').addEventListener('submit', function (e) {
+            e.preventDefault(); // Предотвращаем стандартное поведение формы
+
+            // Получаем значения полей
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+
+            // Проверяем, что поля заполнены
+            if (name && phone) {
+                // Создаем и отображаем сообщение
+                alert(`${name}, ваша заявка отправлена. С вами свяжутся по номеру: ${phone}`);
+
+                // Очищаем поля формы
+                document.getElementById('name').value = '';
+                document.getElementById('phone').value = '';
+
+                // Прокручиваем страницу наверх
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                alert('Пожалуйста, заполните все поля формы.');
+            }
         });
     </script>
 </body>

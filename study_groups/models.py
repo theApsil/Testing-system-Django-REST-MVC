@@ -22,16 +22,16 @@ class Test(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     cover_image = models.URLField(max_length=200)
-    study_group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name='tests')
+    study_group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name='tests', null=True, blank=True)
 
     def __str__(self):
         return self.title
 
 
 class Question(models.Model):
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions', null=True, blank=True)
     text = models.TextField()
-    image = models.URLField(max_length=200, blank=True, null=True)  # новое поле для изображения
+    image = models.ImageField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.text
