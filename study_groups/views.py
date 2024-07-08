@@ -223,76 +223,70 @@ class StudentTestResultView(APIView):
 class GenerateReportView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, student_id, test_id):
+    def get(self, request, student_id, test_id, *args, **kwargs):
         try:
-            # Получаем данные теста и ответов
             test_status = UserTestStatus.objects.get(user_id=student_id, test_id=test_id)
+            test = test_status.test
             user = test_status.user
-            user_answers = UserAnswer.objects.filter(user_id=student_id, question__test_id=test_id)
-            errors = [answer for answer in user_answers if not answer.selected_answer.is_correct]
-
-            # Загружаем шаблон
-            template_path = os.path.join(settings.BASE_DIR, 'docs', 'anal.docx')
-            if not os.path.exists(template_path):
-                logger.error(f"Template not found: {template_path}")
-                return JsonResponse({"error": "Template not found"}, status=404)
-
-            document = Document(template_path)
-
-            # Функция для замены маркеров в тексте, сохраняя форматирование
-            def replace_text_in_paragraph(paragraph, var, value):
-                for run in paragraph.runs:
-                    if var in run.text:
-                        run.text = run.text.replace(var, value)
-
-            # Замена переменных в тексте
-            current_date = datetime.now().strftime("%d.%m.%Y")
-            variables = {
-                'DATE': current_date,
-                'Фамилия Имя': f'{user.last_name} {user.first_name}',
-                'Балл': str(test_status.score),
-                'Оценка': str(test_status.grade),
-                'TEST_NAME': test_status.test.title
-            }
-
-            for paragraph in document.paragraphs:
-                for var, value in variables.items():
-                    replace_text_in_paragraph(paragraph, var, value)
-
-            styles = document.styles
-            try:
-                heading2_style = styles['Heading 2']
-            except KeyError:
-                heading2_style = styles.add_style('Heading 2', 1)
-                heading2_style.font.name = 'Times New Roman'
-                heading2_style.font.size = Pt(14)
-                heading2_style.font.bold = True
-
-            # Добавляем список ошибок
-            document.add_heading('Список ошибок', level=2)
-            for error in errors:
-                document.add_paragraph(f'Вопрос: {error.question.text}')
-                document.add_paragraph(f'Ваш ответ: {error.selected_answer.text}')
-                correct_answer = [a.text for a in error.question.answers.all() if a.is_correct]
-                document.add_paragraph(f'Правильный ответ: {", ".join(correct_answer)}')
-                document.add_paragraph()
-
-            # Сохраняем документ
-            report_path = os.path.join(settings.MEDIA_ROOT, f'report_{student_id}_{test_id}.docx')
-            document.save(report_path)
-
-            # Отправляем файл пользователю
-            with open(report_path, 'rb') as file:
-                response = HttpResponse(file.read(),
-                                        content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-                response['Content-Disposition'] = f'attachment; filename=report_{student_id}_{test_id}.docx'
-                return response
         except UserTestStatus.DoesNotExist:
-            logger.error(f"Test status not found for user {student_id} and test {test_id}")
-            return JsonResponse({"error": "Test status not found"}, status=404)
-        except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
-            return JsonResponse({"error": str(e)}, status=500)
+            return Response({"error": "UserTestStatus not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Путь к шаблону
+        template_path = os.path.join('docs', 'analytics.docx')
+        document = Document(template_path)
+
+        # Замена переменных в документе
+        self.replace_variable(document, 'DATE', datetime.now().strftime('%d.%m.%Y'))
+        self.replace_variable(document, 'TEST', test.title)
+        self.replace_variable(document, 'Фамилия', user.last_name)
+        self.replace_variable(document, 'Имя', user.first_name)
+        self.replace_variable(document, 'Балл', str(test_status.score))
+        self.replace_variable(document, 'Оценка', str(test_status.grade))
+
+        # Список ошибок
+        errs = []
+
+        user_answers = UserAnswer.objects.filter(user_id=student_id, question__test_id=test_id)
+        for user_answer in user_answers:
+            correct_answer = Answer.objects.filter(question=user_answer.question, is_correct=True).first()
+            if user_answer.selected_answer != correct_answer:
+                error = ''
+                error += f"Вопрос: {user_answer.question.text} {chr(10)}"
+                error += f"Ваш ответ: {user_answer.selected_answer.text} {chr(10)}"
+                error += f"Правильный ответ: {correct_answer.text}"
+                errs.append(error)
+
+        if errs:
+            text = ("Список ошибок:\n" +
+                    "\n========================================================\n".join(errs))
+        else:
+            text = "Тест пройден без ошибок."
+
+        self.replace_variable(document, 'Список ошибок', text)
+
+        # Создание временного файла
+        temp_file = 'temp_report.docx'
+        document.save(temp_file)
+
+        # Возвращение документа в качестве ответа
+        with open(temp_file, 'rb') as f:
+            response = HttpResponse(f.read(),
+                                    content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = f'attachment; filename="analytics_report.docx"'
+            return response
+
+    def replace_variable(self, document, variable, value):
+        for paragraph in document.paragraphs:
+            if variable in paragraph.text:
+                inline = paragraph.runs
+                for item in inline:
+                    if variable in item.text:
+                        item.text = item.text.replace(variable, value)
+
+        for table in document.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    self.replace_variable(cell, variable, value)
 
 
 class CreateQuestionView(APIView):
@@ -330,8 +324,13 @@ class CreateTestView(APIView):
     def post(self, request, *args, **kwargs):
         title = request.data.get('title')
         description = request.data.get('description')
-        group_id = request.data.get('study_group')
+        study_group_id = request.data.get('study_group')
         question_ids = request.data.get('questions', [])
+
+        try:
+            study_group = StudyGroup.objects.get(pk=study_group_id)
+        except StudyGroup.DoesNotExist:
+            return Response({'error': 'Invalid study_group.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not title or not description:
             return Response({'error': 'Title and description are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -341,12 +340,21 @@ class CreateTestView(APIView):
             title=title,
             description=description,
             cover_image='/static/img/img_4.png',
-            study_group_id=group_id
+            study_group_id=study_group_id
         )
 
         questions = Question.objects.filter(id__in=question_ids)
         test.questions.set(questions)
         test.save()
+
+        for member in study_group.members.all():
+            UserTestStatus.objects.create(
+                test=test,
+                user=member,
+                is_completed=False,
+                grade=0,
+                score=0
+            )
 
         serializer = TestSerializer(test)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

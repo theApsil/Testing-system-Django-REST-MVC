@@ -1,41 +1,12 @@
 version: '3'
 
 services:
-  postgresql:
+  db:
     image: postgres
-    container_name: postgresql
+    container_name: db
     environment:
-      POSTGRES_DB: ${POSTGRESQL_DB}
-      POSTGRES_USER: ${POSTGRESQL_USER}
-      POSTGRES_PASSWORD: ${POSTGRESQL_PASS}
-
-  web:
-    build: .
-    volumes:
-      - .:/app
+      POSTGRES_DB: testing_system
+      POSTGRES_USER: server
+      POSTGRES_PASSWORD: 1234
     ports:
-      - "8000:80"
-    depends_on:
-      - postgresql
-      - keycloak
-    environment:
-      DB_HOST: ${POSTGRESQL_HOST}
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
-    container_name: keycloak
-    command: start-dev
-    environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgresql:5432/${POSTGRESQL_DB}
-      KC_DB_USERNAME: ${POSTGRESQL_USER}
-      KC_DB_PASSWORD: ${POSTGRESQL_PASS}
-      ENV KC_HOSTNAME: localhost
-      ENV KC_HOSTNAME_ADMIN: localhost
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_NAME}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HTTP_HOST: 0.0.0.0
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgresql
+      - "5432:5432"
